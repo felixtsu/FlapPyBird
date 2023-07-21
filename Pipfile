@@ -1,12 +1,18 @@
 [[source]]
-name = "pypi"
-url = "https://pypi.org/simple"
+#url = "https://pypi.org/simple"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 verify_ssl = true
+name = "pypi"
 
 [dev-packages]
 
 [packages]
 pygame = "*"
+torch = {version = "*", index = "https://download.pytorch.org/whl/cpu"}
+torchvision = {version = "*", index = "https://download.pytorch.org/whl/cpu"}
+torchaudio = {version = "*", index = "https://download.pytorch.org/whl/cpu"}
+matplotlib = "*"
+ipython = "*"
 
 [requires]
 python_version = "3"

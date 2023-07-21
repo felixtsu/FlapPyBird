@@ -231,6 +231,7 @@ def mainGame(movementInfo):
                 sys.exit()
             if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
                 if playery > -2 * IMAGES['player'][0].get_height():
+                    print(playery)
                     playerVelY = playerFlapAcc
                     playerFlapped = True
                     SOUNDS['wing'].play()
