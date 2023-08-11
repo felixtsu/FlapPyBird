@@ -7,7 +7,7 @@ from pygame.locals import *
 FPS = 120
 SCREENWIDTH = 288
 SCREENHEIGHT = 512
-PIPEGAPSIZE = 100  # gap between upper and lower part of pipe
+PIPEGAPSIZE = 120  # gap between upper and lower part of pipe
 BASEY = SCREENHEIGHT * 0.79
 # image, sound and hitmask  dicts
 IMAGES, SOUNDS, HITMASKS = {}, {}, {}
@@ -140,36 +140,41 @@ class FlappyGame:
     def passFirstPipe(self):
         playerMidPos = self.playerx + IMAGES['player'][0].get_width() / 2
         pipe = self.lowerPipes[0]
-        pipeMidPos = pipe['x'] + IMAGES['pipe'][0].get_width() / 2
-        return pipeMidPos <= playerMidPos
+        pipeEndPos = pipe['x'] + IMAGES['pipe'][0].get_width()
+        return pipeEndPos <= playerMidPos
 
     def getNextLowerPipe(self):
+        for lp in self.lowerPipes:
+            if not lp['pass']:
+                return lp
+        return None
 
-        if len(self.lowerPipes) == 0:
-            return None
-        elif len(self.lowerPipes) == 1:
-            return self.lowerPipes[0]
-        else:
-            if self.passFirstPipe():
-                return self.lowerPipes[1]
-            else:
-                return self.lowerPipes[0]
+    # 获取小鸟的垂直坐标x
+    def getPlayerX(self):
+        return self.playerx
 
+    # 获取小鸟的垂直坐标y
     def getPlayerY(self):
         return self.playery
 
+    # 获取下一根柱子的水平距离
     def getNextPillarDis(self):
-        if len(self.lowerPipes) == 0:
-            return self.SCREENWIDTH
-
-        deltaX = self.getNextLowerPipe()['x'] + IMAGES['pipe'][0].get_width() / 2 - self.playerx
+        nextLowerPipe = self.getNextLowerPipe()
+        # if len(self.lowerPipes) == 0:
+        if nextLowerPipe == None:
+            return self.SCREENWIDTH - self.playerx
+        deltaX = nextLowerPipe['x'] + IMAGES['pipe'][0].get_width() / 2 - self.playerx
         return deltaX
 
+    # 获取下一根柱子的的垂直距离 （y）
     def getNextPillarCenterY(self):
-        if len(self.lowerPipes) == 0:
-            return self.SCREENHEIGHT // 2
-        return (self.playery + IMAGES['player'][0].get_width() / 2 - self.getNextLowerPipe()['y'])
+        nextLowerPipe = self.getNextLowerPipe()
+        # if len(self.lowerPipes) == 0:
+        if nextLowerPipe == None:
+            return self.playery + IMAGES['player'][0].get_width() / 2 - BASEY // 2
+        return self.playery + IMAGES['player'][0].get_width() / 2 - nextLowerPipe['y']
 
+    # 获取小鸟的垂直速度 vy
     def getPlayerVy(self):
         return self.playerVelY
 
@@ -214,14 +219,14 @@ class FlappyGame:
 
         # list of upper pipes
         self.upperPipes = [
-            {'x': self.SCREENWIDTH + 200, 'y': newPipe1[0]['y']},
-            {'x': self.SCREENWIDTH + 200 + (self.SCREENWIDTH / 2), 'y': newPipe2[0]['y']},
+            {'x': self.SCREENWIDTH + 200, 'y': newPipe1[0]['y'], 'pass': False},
+            {'x': self.SCREENWIDTH + 200 + (self.SCREENWIDTH / 2), 'y': newPipe2[0]['y'], 'pass': False},
         ]
 
         # list of lowerpipe
         self.lowerPipes = [
-            {'x': self.SCREENWIDTH + 200, 'y': newPipe1[1]['y']},
-            {'x': self.SCREENWIDTH + 200 + (self.SCREENWIDTH / 2), 'y': newPipe2[1]['y']},
+            {'x': self.SCREENWIDTH + 200, 'y': newPipe1[1]['y'], 'pass': False},
+            {'x': self.SCREENWIDTH + 200 + (self.SCREENWIDTH / 2), 'y': newPipe2[1]['y'], 'pass': False},
         ]
 
         self.dt = self.FPSLOCK.tick(FPS) / 1000
@@ -264,10 +269,13 @@ class FlappyGame:
         reward = 0.5
         playerMidPos = self.playerx + IMAGES['player'][0].get_width() / 2
         for pipe in self.upperPipes:
+            if pipe['pass']:
+                continue
             pipeMidPos = pipe['x'] + IMAGES['pipe'][0].get_width() / 2
-            if pipeMidPos <= playerMidPos < pipeMidPos + 4:
+            if pipeMidPos <= playerMidPos < pipeMidPos + 16:
                 reward = 5
                 self.score += 1
+                pipe['pass'] = True
                 SOUNDS['point'].play()
 
         # playerIndex basex change
@@ -414,8 +422,8 @@ class FlappyGame:
         pipeX = self.SCREENWIDTH + 10
 
         return [
-            {'x': pipeX, 'y': gapY - pipeHeight},  # upper pipe
-            {'x': pipeX, 'y': gapY + PIPEGAPSIZE},  # lower pipe
+            {'x': pipeX, 'y': gapY - pipeHeight, 'pass': False},  # upper pipe
+            {'x': pipeX, 'y': gapY + PIPEGAPSIZE, 'pass': False},  # lower pipe
         ]
 
     def showScore(self, score):
