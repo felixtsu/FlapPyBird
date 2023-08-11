@@ -19,8 +19,6 @@ class Agent:
         self.gamma = 0.9  # discount rate
         self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
         # 此处构建一个模型
-        # 将有11个输入节点 通过 256个隐藏层 转成我们能进行的 2个操作
-        # 对应一共11个输入状态的值分别是
         # 2个输出层 （飞or不飞）
         self.model = Linear_QNet(3, 6, 2)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
@@ -29,14 +27,7 @@ class Agent:
 
         state = [
             # 这里要建模
-            # 需要知道离地面高度
-            # game.getPlayerY(),
-            # 与下一柱子的左边沿的deltaX
-            game.getNextPillarDis(),
-            # 与下一柱子的左边沿的deltaY
-            game.getNextPillarCenterY(),
-            # 当前的vy
-            game.getPlayerVy()
+
         ]
 
         return np.array(state, dtype=float)
@@ -60,7 +51,7 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 0 - self.n_games
+        self.epsilon = 80 - self.n_games
         final_move = [0, 0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(1, 20)  # 在飞和不飞之间选一个
